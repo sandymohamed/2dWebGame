@@ -67,7 +67,7 @@
     #canvas1 {
         background: url('./assets//images/sm-background.png');
         width: 90%;
-        height: 100vh;
+        height: 100%;
     }
 
     #overlay {

@@ -758,6 +758,7 @@ window.addEventListener('load', function () {
                 reachedSound.muted = this.isMute;
                 winSound.muted = this.isMute;
                 loseSound.muted = this.isMute;
+                jumpSound.muted = this.isMute;
 
             })
 
