@@ -1,8 +1,9 @@
 window.addEventListener('load', function () {
     const canvas = this.document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
-    canvas.width = 1280;
+    canvas.width = 1300;
     canvas.height = 720;
+
 
     ctx.fillStyle = "white";
     ctx.lineWidth = 3;
@@ -187,7 +188,7 @@ window.addEventListener('load', function () {
             this.spriteX;
             this.spriteY;
             this.hatchTimer = 0;
-            this.hatchInterval = 10000;
+            this.hatchInterval = 5000;
             this.markedForDeletion = false;
 
 
@@ -234,7 +235,13 @@ window.addEventListener('load', function () {
 
             // hatching
             if (this.hatchTimer > this.hatchInterval || this.collisionY < this.game.topMargn) {
-                this.game.hatchlings.push(new larva(this.game, this.collisionX, this.collisionY))
+                this.game.hatchlings.push(new larva(this.game, this.collisionX, this.collisionY, 'yellow'));
+
+                const jumpSound = document.getElementById('jumpSound');
+                if (jumpSound && jumpSound.readyState >= 2 && !this.game.gameOver) {
+                    jumpSound.play();
+                }
+
 
                 this.markedForDeletion = true;
                 this.game.removeGameObjects();
@@ -260,7 +267,7 @@ window.addEventListener('load', function () {
             this.height = this.spriteHeight;
             this.spriteX;
             this.spriteY;
-            this.speedY = 1 + Math.random();
+            this.speedY = 1 + Math.random() * 2
             this.frameX = 0;
             this.frameY = Math.floor(Math.random() * 2);
         }
@@ -284,13 +291,18 @@ window.addEventListener('load', function () {
         update() {
             this.collisionY -= this.speedY;
             this.spriteX = this.collisionX - this.width * 0.5;
-            this.spriteY = this.collisionY - this.height * 0.5 - 40;
+            this.spriteY = this.collisionY - this.height * 0.5 - 100;
 
             // move to safety
             if (this.collisionY < this.game.topMargn) {
                 this.markedForDeletion = true;
                 this.game.removeGameObjects();
                 if (!this.game.gameOver) this.game.score++;
+
+                const reachedSound = document.getElementById('reachedSound');
+                if (reachedSound && reachedSound.readyState >= 2) {
+                    reachedSound.play();
+                }
 
                 for (let i = 0; i < 3; i++) {
                     this.game.particles.push(new Firefly(this.game, this.collisionX, this.collisionY, 'yellow'))
@@ -319,6 +331,13 @@ window.addEventListener('load', function () {
                     this.markedForDeletion = true;
                     this.game.removeGameObjects();
                     this.game.lostHatchlings++;
+
+                    const eatenSound = document.getElementById('eatenSound');
+                    // Check if the audio element exists and is loaded
+                    if (eatenSound && eatenSound.readyState >= 2) {
+                        // Play the sound
+                        eatenSound.play();
+                    }
                     for (let i = 0; i < 5; i++) {
                         this.game.particles.push(new Spark(this.game, this.collisionX, this.collisionY, 'red'))
                     }
@@ -465,6 +484,7 @@ window.addEventListener('load', function () {
             this.height = this.canvas.height;
             this.topMargn = 260;
             this.debug = true;
+            this.isMute = false;
             this.player = new Player(this);
             this.fps = 70;
             this.timer = 0;
@@ -509,8 +529,41 @@ window.addEventListener('load', function () {
                 if (this.mouse.pressed) {
                     this.mouse.x = e.offsetX;
                     this.mouse.y = e.offsetY;
+
                 }
 
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                this.mouse.x = e.offsetX;
+                this.mouse.y = e.offsetY;
+                this.mouse.pressed = true;
+
+
+            });
+
+            canvas.addEventListener('touchend', (e) => {
+                this.mouse.x = e.offsetX;
+                this.mouse.y = e.offsetY;
+                this.mouse.pressed = false;
+
+            });
+
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+
+                const touch = e.touches[0];
+                if (touch) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+
+                    if (this.mouse.pressed) {
+                        this.mouse.x = x;
+                        this.mouse.y = y;
+                    }
+                }
             });
 
 
@@ -518,6 +571,24 @@ window.addEventListener('load', function () {
                 if (e.key == 'd') this.debug = !this.debug;
                 else if (e.key == 'r') this.restart();
             });
+
+
+            let lastTouch = 0;
+            const doubleTapDelay = 300; // Adjust the delay (in milliseconds) for your double-tap detection
+
+            canvas.addEventListener('touchstart', (e) => {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTouch;
+
+                if (tapLength < doubleTapDelay && tapLength > 0) {
+                    // This is a double-tap event
+                    // Handle the double-tap event here
+                    this.restart();
+                    e.preventDefault(); // Prevent the default touchstart behavior
+                }
+
+                lastTouch = currentTime;
+            })
 
         }
         render(context, deltaTime) {
@@ -558,10 +629,11 @@ window.addEventListener('load', function () {
             if (this.debug) {
                 context.fillText('Lost: ' + this.lostHatchlings, 25, 100);
             }
+
             context.restore();
 
             // win / lose message
-            if (this.score >= this.winningScore) {
+            if (this.score >= this.winningScore || this.lostHatchlings === 5) {
                 this.gameOver = true;
                 context.save();
                 context.fillStyle = 'rgba(0,0,0,0.5)';
@@ -573,20 +645,36 @@ window.addEventListener('load', function () {
                 context.shadowColor = 'black';
                 let message1;
                 let message2;
+                let overImage;
+                let gameOverSound;
 
-                if (this.lostHatchlings <= 5) {
+
+
+                if (this.lostHatchlings < 5) {
                     message1 = "Bullseye!!"
                     message2 = "You bullied the bullies!!!"
+                    overImage = document.getElementById('win');
+                    gameOverSound = document.getElementById('winSound');
                 } else {
                     message1 = "Bullocks!!"
-                    message2 = "You lost " + this.lostHatchlings + " hatchlings, don't be a pushover!"
+                    message2 = "You lost " + this.lostHatchlings + " hatchlings, don't be a pushover. Press 'R' or double click to try again";
+                    overImage = document.getElementById('toad')
+                    gameOverSound = document.getElementById('loseSound');
 
                 }
+
+                if (gameOverSound && gameOverSound.readyState >= 2) {
+                    // Play the sound
+                    gameOverSound.play();
+                }
+
                 context.font = '130px Bangers';
+                context.drawImage(overImage, 150, 150);
                 context.fillText(message1, this.width * 0.5, this.height * 0.5 - 20);
                 context.font = '40px Bangers';
                 context.fillText(message2, this.width * 0.5, this.height * 0.5 + 30);
-                context.fillText("Final Score" + this.score + ". Press `R` to but heads again!", this.width * 0.5, this.height * 0.5 + 80);
+                // context.drawImage(overImage, 150, 150 );
+                context.fillText("Final Score " + this.score + ". Press 'R'  or double click to but heads again!", this.width * 0.5, this.height * 0.5 + 80);
 
                 context.restore();
             }
@@ -635,10 +723,47 @@ window.addEventListener('load', function () {
             this.lostHatchlings = 0;
             this.gameOver = false;
             this.init();
+
         }
 
         init() {
-            for (let i = 0; i < 5; i++) {
+            const backgroundSound = document.getElementById('backgroundSound');
+            // Check if the audio element exists and is loaded
+            if (backgroundSound && backgroundSound.readyState >= 2 && !this.gameOver) {
+                backgroundSound.play();
+            }
+
+            const isMuteBtn = document.getElementById('muteButton');
+
+            const muteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_off </span>`
+            const unMuteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_up </span>`
+
+            const addMuteIcon = () => {
+                if (this.isMute) {
+                    isMuteBtn.innerHTML = muteBtn;
+                } else {
+                    isMuteBtn.innerHTML = unMuteBtn;
+                }
+
+            }
+
+            addMuteIcon();
+
+
+            isMuteBtn.addEventListener('click', () => {
+                this.isMute = !this.isMute;
+                addMuteIcon();
+                backgroundSound.muted = this.isMute;
+                eatenSound.muted = this.isMute;
+                reachedSound.muted = this.isMute;
+                winSound.muted = this.isMute;
+                loseSound.muted = this.isMute;
+
+            })
+
+            backgroundSound.muted = this.isMute;
+
+            for (let i = 0; i < 8; i++) {
                 this.addEnemy();
 
             }
@@ -679,7 +804,6 @@ window.addEventListener('load', function () {
 
     const game = new Game(canvas);
     game.init();
-    console.log(game);
 
 
     let lastTime = 0;
