@@ -238,7 +238,7 @@ window.addEventListener('load', function () {
                 this.game.hatchlings.push(new larva(this.game, this.collisionX, this.collisionY, 'yellow'));
 
                 const jumpSound = document.getElementById('jumpSound');
-                if (jumpSound && jumpSound.readyState >= 2 && !this.game.gameOver) {
+                if (jumpSound && jumpSound.readyState >= 2 && !this.game.gameOver && !this.game.isMute) {
                     jumpSound.play();
                 }
 
@@ -300,7 +300,7 @@ window.addEventListener('load', function () {
                 if (!this.game.gameOver) this.game.score++;
 
                 const reachedSound = document.getElementById('reachedSound');
-                if (reachedSound && reachedSound.readyState >= 2) {
+                if (reachedSound && reachedSound.readyState >= 2 && !this.game.isMute) {
                     reachedSound.play();
                 }
 
@@ -334,7 +334,7 @@ window.addEventListener('load', function () {
 
                     const eatenSound = document.getElementById('eatenSound');
                     // Check if the audio element exists and is loaded
-                    if (eatenSound && eatenSound.readyState >= 2) {
+                    if (eatenSound && eatenSound.readyState >= 2 && !this.game.isMute) {
                         // Play the sound
                         eatenSound.play();
                     }
@@ -504,7 +504,7 @@ window.addEventListener('load', function () {
             this.gameOver = false;
             this.lostHatchlings = 0;
             this.mouse = {
-                x: this.width * 0.5,
+                x: this.width * .2,
                 y: this.height * 0.5,
                 pressed: false
             }
@@ -533,11 +533,62 @@ window.addEventListener('load', function () {
                 }
 
             });
+            const right = document.getElementById('r');
+            const left = document.getElementById('l');
+            const top = document.getElementById('t');
+            const down = document.getElementById('d');
+
+            right.addEventListener('touchstart', () => {
+                this.mouse.x += 50;
+                this.mouse.pressed = true;
+            });
+
+            right.addEventListener('touchend', () => {
+                this.mouse.x +=  50;
+                this.mouse.pressed = false;
+            });
+        
+
+            left.addEventListener('touchstart', () => {
+                this.mouse.x -= 100 ;
+                this.mouse.pressed = true;
+            });
+
+            left.addEventListener('touchend', () => {
+                this.mouse.x -= 100;
+                this.mouse.pressed = false;
+            });
+        
+
+            top.addEventListener('touchstart', () => {
+                this.mouse.y -= 50;
+                this.mouse.pressed = true;
+            });
+
+            top.addEventListener('touchend', () => {
+                this.mouse.y -=  50;
+                this.mouse.pressed = false;
+            });
+        
+
+            down.addEventListener('touchstart', () => {
+                this.mouse.y += 50;
+                this.mouse.pressed = true;
+            });
+
+            down.addEventListener('touchend', () => {
+                this.mouse.y += 50;
+                this.mouse.pressed = false;
+            });
+        
+            
 
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
 
                 const touch = e.touches[0];
+                console.log('ttsss', touch);
+
                 if (touch) {
                     this.mouse.x = touch.clientX;
                     this.mouse.y = touch.clientY;
@@ -546,11 +597,11 @@ window.addEventListener('load', function () {
             });
 
             canvas.addEventListener('touchend', (e) => {
-
-
                 e.preventDefault();
 
                 const touch = e.touches[0];
+                console.log('tteee', touch);
+
                 if (touch) {
                     this.mouse.x = touch.clientX;
                     this.mouse.y = touch.clientY;
@@ -569,8 +620,6 @@ window.addEventListener('load', function () {
 
                     const x = touch.clientX - rect.left;
                     const y = touch.clientY - rect.top;
-
-
 
                     if (this.mouse.pressed) {
                         this.mouse.x = x;
@@ -670,13 +719,13 @@ window.addEventListener('load', function () {
                     gameOverSound = document.getElementById('winSound');
                 } else {
                     message1 = "Bullocks!!"
-                    message2 = "You lost " + this.lostHatchlings + " hatchlings, don't be a pushover. Press 'R' or double click to try again";
+                    message2 = "You lost " + this.lostHatchlings + " hatchlings, don't be a pushover. Press 'R' or double touch to try again";
                     overImage = document.getElementById('toad')
                     gameOverSound = document.getElementById('loseSound');
 
                 }
 
-                if (gameOverSound && gameOverSound.readyState >= 2) {
+                if (gameOverSound && gameOverSound.readyState >= 2 && !this.isMute) {
                     // Play the sound
                     gameOverSound.play();
                 }
@@ -742,7 +791,7 @@ window.addEventListener('load', function () {
         init() {
             const backgroundSound = document.getElementById('backgroundSound');
             // Check if the audio element exists and is loaded
-            if (backgroundSound && backgroundSound.readyState >= 2 && !this.gameOver) {
+            if (backgroundSound && backgroundSound.readyState >= 2 && !this.gameOver && !this.isMute) {
                 backgroundSound.play();
             }
 
@@ -775,7 +824,7 @@ window.addEventListener('load', function () {
 
             })
 
-            backgroundSound.muted = this.isMute;
+            // backgroundSound.muted = this.isMute;
 
             for (let i = 0; i < 8; i++) {
                 this.addEnemy();
