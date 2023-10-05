@@ -75,32 +75,35 @@
     #overlay {
 
         width: 92%;
-        height: 100vh;
-
+        height: 82vh;
 
     }
 
+    #muteButton {
+        top: 20%;
+        right: 5%;
+    }
 
     #obstacles,
-#bull,
-#egg,
-#toad,
-#toads,
-#larva,
-#win {
-    display: none;
-    width: 10% !important;
-    height: 5% !important;
+    #bull,
+    #egg,
+    #toad,
+    #toads,
+    #larva,
+    #win {
+        display: none;
+        width: 10% !important;
+        height: 5% !important;
 
-}
+    }
 
-#egg,
-#larva {
-    display: none;
-    width: 3% !important;
-    height: 1% !important;
+    #egg,
+    #larva {
+        display: none;
+        width: 3% !important;
+        height: 1% !important;
 
-}
+    }
 }
 
 
@@ -109,9 +112,12 @@
 
         height: 60vh;
     }
+
     #overlay {
         height: 60vh;
+    }
 
-
+    #muteButton {
+        top: 23%;
     }
 }

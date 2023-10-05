@@ -484,7 +484,7 @@ window.addEventListener('load', function () {
             this.height = this.canvas.height;
             this.topMargn = 260;
             this.debug = true;
-            this.isMute = false;
+            this.isMute = true;
             this.player = new Player(this);
             this.fps = 70;
             this.timer = 0;
@@ -535,17 +535,27 @@ window.addEventListener('load', function () {
             });
 
             canvas.addEventListener('touchstart', (e) => {
-                this.mouse.x = e.offsetX;
-                this.mouse.y = e.offsetY;
-                this.mouse.pressed = true;
+                e.preventDefault();
 
-
+                const touch = e.touches[0];
+                if (touch) {
+                    this.mouse.x = touch.clientX;
+                    this.mouse.y = touch.clientY;
+                    this.mouse.pressed = true;
+                }
             });
 
             canvas.addEventListener('touchend', (e) => {
-                this.mouse.x = e.offsetX;
-                this.mouse.y = e.offsetY;
-                this.mouse.pressed = false;
+
+
+                e.preventDefault();
+
+                const touch = e.touches[0];
+                if (touch) {
+                    this.mouse.x = touch.clientX;
+                    this.mouse.y = touch.clientY;
+                    this.mouse.pressed = false;
+                }
 
             });
 
@@ -556,8 +566,11 @@ window.addEventListener('load', function () {
                 const touch = e.touches[0];
                 if (touch) {
                     const rect = canvas.getBoundingClientRect();
+
                     const x = touch.clientX - rect.left;
                     const y = touch.clientY - rect.top;
+
+
 
                     if (this.mouse.pressed) {
                         this.mouse.x = x;
@@ -805,7 +818,6 @@ window.addEventListener('load', function () {
 
     const game = new Game(canvas);
     game.init();
-
 
     let lastTime = 0;
     function animate(timeStamp) {
