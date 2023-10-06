@@ -1,4 +1,7 @@
 window.addEventListener('load', function () {
+    let isGamePaused = true;
+    let gameOverSoundPlayed = false;
+
     const canvas = this.document.getElementById('canvas1');
     const ctx = canvas.getContext('2d');
     canvas.width = 1300;
@@ -10,6 +13,17 @@ window.addEventListener('load', function () {
     ctx.strokeStyle = "black";
     ctx.font = '40px Bangers';
     ctx.textAlign = 'center';
+
+    let maxEnemies;
+    let maxEggsNum;
+
+    if (canvas.offsetWidth <= 500) {
+        maxEnemies = 3;
+        maxEggsNum = 3;
+    } else {
+        maxEnemies = 8;
+        maxEggsNum = 5;
+    }
 
     class Player {
         constructor(game) {
@@ -41,6 +55,7 @@ window.addEventListener('load', function () {
             this.spriteX = this.collisionX - this.width * 0.5;
             this.spriteY = this.collisionY - this.height * 0.5 - 100;
 
+
         }
 
         draw(context) {
@@ -70,9 +85,9 @@ window.addEventListener('load', function () {
 
 
         update() {
-
             this.dx = this.game.mouse.x - this.collisionX;
             this.dy = this.game.mouse.y - this.collisionY;
+
             const angel = Math.atan2(this.dy, this.dx)
 
             if (angel < -2.74 || angel > 2.74) this.frameY = 6;
@@ -208,8 +223,16 @@ window.addEventListener('load', function () {
                 context.fill();
                 context.restore();
                 context.stroke();
+
+                // Save the current fill style
+                const previousFillStyle = context.fillStyle;
+                // set only timer in black
+                context.fillStyle = "#405515";
                 const displayTimer = (this.hatchTimer * 0.001).toFixed(0);
-                context.fillText(displayTimer, this.collisionX, this.collisionY, this.collisionRadius * 2.5)
+                context.fillText(displayTimer, this.collisionX, this.collisionY, this.collisionRadius * 2.5);
+
+                // Restore the previous fill style
+                context.fillStyle = previousFillStyle;
             }
         }
 
@@ -241,6 +264,10 @@ window.addEventListener('load', function () {
                 if (jumpSound && jumpSound.readyState >= 2 && !this.game.gameOver && !this.game.isMute) {
                     jumpSound.play();
                 }
+
+
+
+
 
 
                 this.markedForDeletion = true;
@@ -492,7 +519,7 @@ window.addEventListener('load', function () {
             this.eggTimer = 0;
             this.eggInterval = 1000;
             this.numberOfObstacles = 10;
-            this.maxEggs = 5;
+            this.maxEggs = maxEggsNum;
             this.obstacles = [];
             this.eggs = [];
             this.enemies = [];
@@ -509,86 +536,11 @@ window.addEventListener('load', function () {
                 pressed: false
             }
 
-
-            canvas.addEventListener('mousedown', (e) => {
-                this.mouse.x = e.offsetX;
-                this.mouse.y = e.offsetY;
-                this.mouse.pressed = true;
-
-            });
-
-            canvas.addEventListener('mouseup', (e) => {
-                this.mouse.x = e.offsetX;
-                this.mouse.y = e.offsetY;
-                this.mouse.pressed = false;
-
-            });
-
-            canvas.addEventListener('mousemove', (e) => {
-
-                if (this.mouse.pressed) {
-                    this.mouse.x = e.offsetX;
-                    this.mouse.y = e.offsetY;
-
-                }
-
-            });
-            const right = document.getElementById('r');
-            const left = document.getElementById('l');
-            const top = document.getElementById('t');
-            const down = document.getElementById('d');
-
-            right.addEventListener('touchstart', () => {
-                this.mouse.x += 50;
-                this.mouse.pressed = true;
-            });
-
-            right.addEventListener('touchend', () => {
-                this.mouse.x +=  50;
-                this.mouse.pressed = false;
-            });
-        
-
-            left.addEventListener('touchstart', () => {
-                this.mouse.x -= 100 ;
-                this.mouse.pressed = true;
-            });
-
-            left.addEventListener('touchend', () => {
-                this.mouse.x -= 100;
-                this.mouse.pressed = false;
-            });
-        
-
-            top.addEventListener('touchstart', () => {
-                this.mouse.y -= 50;
-                this.mouse.pressed = true;
-            });
-
-            top.addEventListener('touchend', () => {
-                this.mouse.y -=  50;
-                this.mouse.pressed = false;
-            });
-        
-
-            down.addEventListener('touchstart', () => {
-                this.mouse.y += 50;
-                this.mouse.pressed = true;
-            });
-
-            down.addEventListener('touchend', () => {
-                this.mouse.y += 50;
-                this.mouse.pressed = false;
-            });
-        
-            
-
+            // move by canvas touch screen
             canvas.addEventListener('touchstart', (e) => {
                 e.preventDefault();
 
                 const touch = e.touches[0];
-                console.log('ttsss', touch);
-
                 if (touch) {
                     this.mouse.x = touch.clientX;
                     this.mouse.y = touch.clientY;
@@ -600,8 +552,6 @@ window.addEventListener('load', function () {
                 e.preventDefault();
 
                 const touch = e.touches[0];
-                console.log('tteee', touch);
-
                 if (touch) {
                     this.mouse.x = touch.clientX;
                     this.mouse.y = touch.clientY;
@@ -627,6 +577,98 @@ window.addEventListener('load', function () {
                     }
                 }
             });
+
+            // move by canvas mouse 
+            canvas.addEventListener('mousedown', (e) => {
+                this.mouse.x = e.offsetX;
+                this.mouse.y = e.offsetY;
+                this.mouse.pressed = true;
+            });
+
+            canvas.addEventListener('mouseup', (e) => {
+                this.mouse.x = e.offsetX;
+                this.mouse.y = e.offsetY;
+                this.mouse.pressed = false;
+
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+
+                if (this.mouse.pressed) {
+                    this.mouse.x = e.offsetX;
+                    this.mouse.y = e.offsetY;
+
+                }
+
+            });
+
+            // move by canvas arrow buttons
+
+            function handleStart(valueX, valueY, event) {
+
+                this.mouse.pressed = true;
+
+
+                if (event.type === 'touchstart') {
+                    this.mouse.x += valueX;
+                    this.mouse.y += valueY;
+                } else if (event.type === 'mousedown') {
+
+                    this.mouse.x += valueX;
+                    this.mouse.y += valueY;
+                }
+            }
+
+            function handleEnd(valueX, valueY, event) {
+                this.mouse.pressed = false;
+
+                if (event.type === 'touchend') {
+                    // Handle touch event
+                    this.mouse.x += valueX;
+                    this.mouse.y += valueY;
+                } else if (event.type === 'mouseup') {
+                    // Handle mouse event
+
+                    this.mouse.x += valueX;
+                    this.mouse.y += valueY;
+                }
+
+            }
+
+            // arrow buttons
+            const right = document.getElementById('r');
+            const left = document.getElementById('l');
+            const topButton = document.getElementById('t');
+            const down = document.getElementById('d');
+
+
+            // Add unified event listeners for touch and mouse
+            right.addEventListener('touchstart', handleStart.bind(this, 50, 0));
+            right.addEventListener('mousedown', handleStart.bind(this, 50, 0));
+
+            right.addEventListener('touchend', handleEnd.bind(this, 50, 0));
+            right.addEventListener('mouseup', handleEnd.bind(this, 50, 0));
+
+            left.addEventListener('touchstart', handleStart.bind(this, -50, 0));
+            left.addEventListener('mousedown', handleStart.bind(this, -50, 0));
+
+            left.addEventListener('touchend', handleEnd.bind(this, -50, 0));
+            left.addEventListener('mouseup', handleEnd.bind(this, -50, 0));
+
+            topButton.addEventListener('touchstart', handleStart.bind(this, 0, -25));
+            topButton.addEventListener('mousedown', handleStart.bind(this, 0, -25));
+
+            topButton.addEventListener('touchend', handleEnd.bind(this, 0, -25));
+            topButton.addEventListener('mouseup', handleEnd.bind(this, 0, -25));
+
+            down.addEventListener('touchstart', handleStart.bind(this, 0, 25));
+            down.addEventListener('mousedown', handleStart.bind(this, 0, 25));
+
+            down.addEventListener('touchend', handleEnd.bind(this, 0, 25));
+            down.addEventListener('mouseup', handleEnd.bind(this, 0, 25));
+
+
+
 
 
             window.addEventListener('keydown', (e) => {
@@ -668,7 +710,8 @@ window.addEventListener('load', function () {
                 this.gameObjects.forEach(object => {
                     object.draw(context)
                     object.update(deltaTime);
-                });
+
+                })
 
                 this.timer = 0;
 
@@ -711,7 +754,6 @@ window.addEventListener('load', function () {
                 let gameOverSound;
 
 
-
                 if (this.lostHatchlings < 5) {
                     message1 = "Bullseye!!"
                     message2 = "You bullied the bullies!!!"
@@ -725,9 +767,12 @@ window.addEventListener('load', function () {
 
                 }
 
-                if (gameOverSound && gameOverSound.readyState >= 2 && !this.isMute) {
+                if (gameOverSound && !gameOverSoundPlayed && gameOverSound.readyState >= 2 && !this.isMute) {
                     // Play the sound
                     gameOverSound.play();
+
+                    gameOverSoundPlayed = true;
+
                 }
 
                 context.font = '130px Bangers';
@@ -739,6 +784,13 @@ window.addEventListener('load', function () {
                 context.fillText("Final Score " + this.score + ". Press 'R'  or double click to but heads again!", this.width * 0.5, this.height * 0.5 + 80);
 
                 context.restore();
+            }
+
+            const gameBackgroundSound = document.getElementById('gameBackgroundSound');
+
+            if (gameBackgroundSound && gameBackgroundSound.readyState >= 2 && !this.gameOver && !this.isMute) {
+                gameBackgroundSound.play();
+
             }
 
         }
@@ -788,17 +840,14 @@ window.addEventListener('load', function () {
 
         }
 
+
+
         init() {
-            const backgroundSound = document.getElementById('backgroundSound');
-            // Check if the audio element exists and is loaded
-            if (backgroundSound && backgroundSound.readyState >= 2 && !this.gameOver && !this.isMute) {
-                backgroundSound.play();
-            }
-
             const isMuteBtn = document.getElementById('muteButton');
-
             const muteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_off </span>`
             const unMuteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_up </span>`
+
+
 
             const addMuteIcon = () => {
                 if (this.isMute) {
@@ -806,29 +855,27 @@ window.addEventListener('load', function () {
                 } else {
                     isMuteBtn.innerHTML = unMuteBtn;
                 }
-
             }
 
-            addMuteIcon();
-
-
-            isMuteBtn.addEventListener('click', () => {
+            const checkMute = () => {
                 this.isMute = !this.isMute;
                 addMuteIcon();
-                backgroundSound.muted = this.isMute;
+                gameBackgroundSound.muted = this.isMute;
+                // backgroundSound.muted = this.isMute;
                 eatenSound.muted = this.isMute;
                 reachedSound.muted = this.isMute;
                 winSound.muted = this.isMute;
                 loseSound.muted = this.isMute;
                 jumpSound.muted = this.isMute;
+            }
+            addMuteIcon();
+            checkMute();
 
-            })
+            isMuteBtn.addEventListener('click', () => checkMute())
 
-            // backgroundSound.muted = this.isMute;
 
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < maxEnemies; i++) {
                 this.addEnemy();
-
             }
 
             let attempts = 0;
@@ -868,15 +915,39 @@ window.addEventListener('load', function () {
     const game = new Game(canvas);
     game.init();
 
-    let lastTime = 0;
-    function animate(timeStamp) {
-        const deltaTime = timeStamp - lastTime;
-        lastTime = timeStamp;
-        // ctx.clearRect(0, 0, canvas.width, canvas.height)
-        game.render(ctx, deltaTime);
 
+    let lastTime = 0;
+
+
+    // Define your animation function
+    function animate(timeStamp) {
+        if (!isGamePaused) {
+            const deltaTime = timeStamp - lastTime;
+            lastTime = timeStamp;
+            // ctx.clearRect(0, 0, canvas.width, canvas.height)
+            game.render(ctx, deltaTime);
+
+        }
+
+        // Keep requesting animation frames
         window.requestAnimationFrame(animate);
     }
+
+    // Add a click event listener to the "ss" button
+    const start = document.getElementById('s');
+
+    start.addEventListener('click', function clickHandler() {
+        // Toggle the game state (pause or resume)
+        isGamePaused = !isGamePaused;
+
+        if (!isGamePaused) {
+            start.style.display = 'none';
+            canvas.style.opacity = 1;
+        }
+        // Remove the click event listener after the first click to prevent pausing again
+        start.removeEventListener('click', clickHandler);
+
+    });
 
     animate(0);
 })
