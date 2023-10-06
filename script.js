@@ -16,6 +16,8 @@ window.addEventListener('load', function () {
 
     let maxEnemies;
     let maxEggsNum;
+    let speedXmultiper;
+    let speedYmultiper;
 
     if (canvas.offsetWidth <= 500) {
         maxEnemies = 3;
@@ -23,6 +25,14 @@ window.addEventListener('load', function () {
     } else {
         maxEnemies = 8;
         maxEggsNum = 5;
+    }
+
+    if (canvas.offsetWidth < canvas.offsetHeight) {
+        speedXmultiper = 7;
+        speedYmultiper = 4;
+    } else {
+        speedXmultiper = 5;
+        speedYmultiper = 5;
     }
 
     class Player {
@@ -101,7 +111,6 @@ window.addEventListener('load', function () {
 
             const distance = Math.hypot(this.dy, this.dx);
 
-
             if (distance > this.speedModifier) {
                 this.speedX = this.dx / distance || 0;
                 this.speedY = this.dy / distance || 0;
@@ -110,8 +119,8 @@ window.addEventListener('load', function () {
                 this.speedY = 0;
 
             }
-            this.collisionX += this.speedX * this.speedModifier;
-            this.collisionY += this.speedY * this.speedModifier;
+            this.collisionX += this.speedX * speedXmultiper;
+            this.collisionY += this.speedY * speedYmultiper;
 
             this.spriteX = this.collisionX - this.width * 0.5;
             this.spriteY = this.collisionY - this.height * 0.5 - 100;
@@ -531,10 +540,15 @@ window.addEventListener('load', function () {
             this.gameOver = false;
             this.lostHatchlings = 0;
             this.mouse = {
-                x: this.width * .2,
+                x: this.width * 0.5,
                 y: this.height * 0.5,
                 pressed: false
             }
+            this.isMuteBtn = document.getElementById('muteButton');
+            this.muteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_off </span>`
+            this.unMuteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_up </span>`
+
+            this.isMuteBtn.addEventListener('click', () => this.checkMute());
 
             // move by canvas touch screen
             canvas.addEventListener('touchstart', (e) => {
@@ -638,34 +652,34 @@ window.addEventListener('load', function () {
             // arrow buttons
             const right = document.getElementById('r');
             const left = document.getElementById('l');
-            const topButton = document.getElementById('t');
+            const top = document.getElementById('t');
             const down = document.getElementById('d');
 
 
             // Add unified event listeners for touch and mouse
-            right.addEventListener('touchstart', handleStart.bind(this, 50, 0));
-            right.addEventListener('mousedown', handleStart.bind(this, 50, 0));
+            right.addEventListener('touchstart', handleStart.bind(this, 25, 0));
+            right.addEventListener('mousedown', handleStart.bind(this, 25, 0));
 
-            right.addEventListener('touchend', handleEnd.bind(this, 50, 0));
-            right.addEventListener('mouseup', handleEnd.bind(this, 50, 0));
+            right.addEventListener('touchend', handleEnd.bind(this, 25, 0));
+            right.addEventListener('mouseup', handleEnd.bind(this, 25, 0));
 
-            left.addEventListener('touchstart', handleStart.bind(this, -50, 0));
-            left.addEventListener('mousedown', handleStart.bind(this, -50, 0));
+            left.addEventListener('touchstart', handleStart.bind(this, -25, 0));
+            left.addEventListener('mousedown', handleStart.bind(this, -25, 0));
 
-            left.addEventListener('touchend', handleEnd.bind(this, -50, 0));
-            left.addEventListener('mouseup', handleEnd.bind(this, -50, 0));
+            left.addEventListener('touchend', handleEnd.bind(this, -25, 0));
+            left.addEventListener('mouseup', handleEnd.bind(this, -25, 0));
 
-            topButton.addEventListener('touchstart', handleStart.bind(this, 0, -25));
-            topButton.addEventListener('mousedown', handleStart.bind(this, 0, -25));
+            top.addEventListener('touchstart', handleStart.bind(this, 0, -15));
+            top.addEventListener('mousedown', handleStart.bind(this, 0, -15));
 
-            topButton.addEventListener('touchend', handleEnd.bind(this, 0, -25));
-            topButton.addEventListener('mouseup', handleEnd.bind(this, 0, -25));
+            top.addEventListener('touchend', handleEnd.bind(this, 0, -15));
+            top.addEventListener('mouseup', handleEnd.bind(this, 0, -15));
 
-            down.addEventListener('touchstart', handleStart.bind(this, 0, 25));
-            down.addEventListener('mousedown', handleStart.bind(this, 0, 25));
+            down.addEventListener('touchstart', handleStart.bind(this, 0, 15));
+            down.addEventListener('mousedown', handleStart.bind(this, 0, 15));
 
-            down.addEventListener('touchend', handleEnd.bind(this, 0, 25));
-            down.addEventListener('mouseup', handleEnd.bind(this, 0, 25));
+            down.addEventListener('touchend', handleEnd.bind(this, 0, 15));
+            down.addEventListener('mouseup', handleEnd.bind(this, 0, 15));
 
 
 
@@ -837,48 +851,46 @@ window.addEventListener('load', function () {
             this.lostHatchlings = 0;
             this.gameOver = false;
             this.init();
+            this.isMute = false;
+            this.addMuteIcon();
 
         }
 
 
 
+        addMuteIcon() {
+            if (this.isMute) {
+                this.isMuteBtn.innerHTML = this.muteBtn;
+            } else {
+                this.isMuteBtn.innerHTML = this.unMuteBtn;
+            }
+        }
+
+        checkMute() {
+            this.isMute = !this.isMute;
+            this.addMuteIcon();
+            gameBackgroundSound.muted = this.isMute;
+            eatenSound.muted = this.isMute;
+            reachedSound.muted = this.isMute;
+            winSound.muted = this.isMute;
+            loseSound.muted = this.isMute;
+            jumpSound.muted = this.isMute;
+        }
+
+
         init() {
-            const isMuteBtn = document.getElementById('muteButton');
-            const muteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_off </span>`
-            const unMuteBtn = `<span class="material-symbols-outlined muteButton"  id="muteButton"> volume_up </span>`
 
 
 
-            const addMuteIcon = () => {
-                if (this.isMute) {
-                    isMuteBtn.innerHTML = muteBtn;
-                } else {
-                    isMuteBtn.innerHTML = unMuteBtn;
-                }
-            }
-
-            const checkMute = () => {
-                this.isMute = !this.isMute;
-                addMuteIcon();
-                gameBackgroundSound.muted = this.isMute;
-                // backgroundSound.muted = this.isMute;
-                eatenSound.muted = this.isMute;
-                reachedSound.muted = this.isMute;
-                winSound.muted = this.isMute;
-                loseSound.muted = this.isMute;
-                jumpSound.muted = this.isMute;
-            }
-            addMuteIcon();
-            checkMute();
-
-            isMuteBtn.addEventListener('click', () => checkMute())
+            this.addMuteIcon();
 
 
+
+            let attempts = 0;
             for (let i = 0; i < maxEnemies; i++) {
                 this.addEnemy();
             }
 
-            let attempts = 0;
             while (this.obstacles.length < this.numberOfObstacles
                 && attempts < 500) {
                 let testObstacle = new Obstacle(this);
@@ -905,7 +917,6 @@ window.addEventListener('load', function () {
                     this.obstacles.push(testObstacle);
                 }
                 attempts++;
-
             }
 
         }

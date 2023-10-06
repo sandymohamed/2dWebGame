@@ -9,7 +9,7 @@
 #canvas1 {
     background: url('./assets//images/background.png');
     position: absolute;
-    top: 50%;
+    top: 47%;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 80%;
@@ -29,7 +29,7 @@
 
 }
 
-#muteButton {
+#muteButton > * {
     position: absolute;
     top: 13%;
     right: 12%;
