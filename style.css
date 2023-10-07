@@ -51,17 +51,11 @@
 #larva,
 #win {
     display: none;
-    /* width: 15% !important;
-    height: 15% !important; */
-
 }
 
 #egg,
 #larva {
     display: none;
-    /* width: 5% !important;
-    height: 5% !important; */
-
 }
 
 #s {
@@ -76,7 +70,11 @@
     cursor: pointer;
 }
 
-#s:hover {
+#s, 
+#r,
+#l,
+#t,
+#d:hover {
     color: #597a18;
 
 }

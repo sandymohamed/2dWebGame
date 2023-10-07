@@ -883,6 +883,7 @@ window.addEventListener('load', function () {
 
 
             this.addMuteIcon();
+            this.checkMute();
 
 
 
